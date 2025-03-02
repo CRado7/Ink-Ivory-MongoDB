@@ -1,7 +1,7 @@
 
 import express from "express";
 import { registerAdmin, loginAdmin, getAdminProfile, getAllAdmins } from "../controllers/inkIvoryAdminController.js";
-import { authMiddleware } from "./middleware/authMiddleware.js";
+import { authMiddleware } from "../middleware/authMIddleware.js";
 
 const router = express.Router();
 
