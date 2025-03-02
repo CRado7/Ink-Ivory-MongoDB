@@ -36,6 +36,33 @@ const FullCalendarPage = () => {
     artistId: "",
   });
 
+  const initialFormState = {
+    name: "",
+    email: "",
+    phone: "",
+    artistId: "",
+    type: "Tattoo",
+    location: "",
+    startTime: "",
+    endTime: "",
+    deposit: "",
+    total: "",
+    referencePhotos: [],
+    additionalDetails: "",
+    textReminder: false,
+    emailReminder: false,
+  };
+  
+  const fetchArtists = async (setArtists) => {
+    try {
+      const response = await axios.get("/api/artists");
+      console.log("Fetched artists:", response.data);
+      setArtists(response.data);
+    } catch (error) {
+      console.error("Error fetching artists:", error);
+    }
+  };
+  
   const confirmDelete = async () => {
     if (!deleteInfo) return;
   
@@ -48,24 +75,15 @@ const FullCalendarPage = () => {
   
       // Ensure artists are available before fetching appointments
       if (artists.length > 0) {
-        fetchAppointments();
+        await fetchAppointments(setEvents, artists);
       } else {
         console.warn("Artists data is not ready. Skipping fetchAppointments.");
       }
+      // await fetchAppointments(setEvents, artists);
+
     } catch (error) {
       console.error("Error deleting appointment:", error);
       alert("Failed to delete appointment. Please try again.");
-    }
-  };
-  
-
-  const fetchArtists = async (setArtists) => {
-    try {
-      const response = await axios.get("/api/artists");
-      console.log("Fetched artists:", response.data);
-      setArtists(response.data);
-    } catch (error) {
-      console.error("Error fetching artists:", error);
     }
   };
   
@@ -129,8 +147,8 @@ const FullCalendarPage = () => {
 
   const handleCloseModal = () => {
     setShowModal(false);
-    setIsEditing(false);
     setSelectedDate(null);
+    setFormData(initialFormState);
   };
 
   const fetchAppointments = async (setEvents, artists) => {
@@ -202,7 +220,6 @@ const FullCalendarPage = () => {
     }
   };
   
-  // Call it inside useEffect
   useEffect(() => {
     if (artists.length > 0) {
       fetchAppointments(setEvents, artists);
@@ -324,17 +341,28 @@ const formatTime = (timeString) => {
   
   const handleSaveChanges = async () => {
     try {
+      // Send update request
       await axios.put(`/api/appointments/${updatedData.artistId}/appointments/${selectedEvent.id}`, updatedData);
-      alert("Appointment updated successfully!");
-      fetchAppointments();
+  
+      // alert("Appointment updated successfully!");
+  
+      // Fetch updated appointments
+      if (artists.length === 0) {
+        console.warn("Artists data is not ready. Skipping fetchAppointments.");
+        return;
+      }
+      await fetchAppointments(setEvents, artists);
+  
+      // Ensure selected event updates with new data
+      setSelectedEvent((prev) => ({ ...prev, ...updatedData }));
+  
+      // Exit editing mode
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating appointment frontend:", error);
       alert("Failed to update appointment. Please try again.");
     }
-  };
-  
-  
+  };  
   
   return (
     <div className="fullcalendar-container">
