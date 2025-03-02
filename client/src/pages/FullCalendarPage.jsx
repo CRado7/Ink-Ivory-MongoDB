@@ -22,7 +22,7 @@ const FullCalendarPage = () => {
     name: "",
     email: "",
     phone: "",
-    type: "Tattoo", // Default type
+    type: "Tattoo",
     location: "",
     date: "",
     startTime: "",
@@ -33,7 +33,7 @@ const FullCalendarPage = () => {
     additionalDetails: "",
     textReminder: false,
     emailReminder: false,
-    artistId: "", // Artist selection
+    artistId: "",
   });
 
   const confirmDelete = async () => {
@@ -129,6 +129,7 @@ const FullCalendarPage = () => {
 
   const handleCloseModal = () => {
     setShowModal(false);
+    setIsEditing(false);
     setSelectedDate(null);
   };
 
@@ -259,6 +260,38 @@ const handleDeleteAppointment = () => {
   setIsConfirmModalOpen(true); // Open the confirmation modal
 };
 
+const formatTime = (timeString) => {
+  if (!timeString) return "";
+
+  // If already in HH:mm format, return as is
+  if (/^\d{2}:\d{2}$/.test(timeString)) return timeString;
+
+  console.log("Converting time:", timeString);
+
+  try {
+    // Use regex to capture time format (e.g., "2:30 PM")
+    const match = timeString.match(/(\d+):(\d+) (\w{2})/);
+    if (!match) throw new Error("Invalid format");
+
+    let [_, hours, minutes, period] = match;
+    hours = parseInt(hours, 10);
+    minutes = parseInt(minutes, 10);
+
+    // Convert to 24-hour format
+    if (period.toUpperCase() === "PM" && hours !== 12) {
+      hours += 12;
+    } else if (period.toUpperCase() === "AM" && hours === 12) {
+      hours = 0;
+    }
+
+    // Format as "HH:mm"
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+  } catch (error) {
+    console.error("Invalid time format:", timeString);
+    return "";
+  }
+};
+
   useEffect(() => {
     if (selectedEvent) {
       setUpdatedData({
@@ -269,8 +302,8 @@ const handleDeleteAppointment = () => {
         type: selectedEvent.type,
         location: selectedEvent.location,
         date: selectedEvent.date,
-        startTime: selectedEvent.time.startTime,
-        endTime: selectedEvent.time.endTime,
+        startTime: formatTime(selectedEvent.time.startTime),
+        endTime: formatTime(selectedEvent.time.endTime),
         deposit: selectedEvent.deposit,
         total: selectedEvent.total,
         textReminder: selectedEvent.textReminder,
@@ -293,8 +326,8 @@ const handleDeleteAppointment = () => {
     try {
       await axios.put(`/api/appointments/${updatedData.artistId}/appointments/${selectedEvent.id}`, updatedData);
       alert("Appointment updated successfully!");
+      fetchAppointments();
       setIsEditing(false);
-      fetchAppointments(); // Refresh calendar view
     } catch (error) {
       console.error("Error updating appointment frontend:", error);
       alert("Failed to update appointment. Please try again.");
@@ -447,130 +480,136 @@ const handleDeleteAppointment = () => {
         </form>
       </Modal>
 
-      <Modal show={isEventModalOpen} onClose={() => setIsEventModalOpen(false)}>
-  {selectedEvent && (
-    <div>
-      <h2>Appointment Details</h2>
+      <Modal 
+        show={isEventModalOpen} 
+        onClose={() => {
+          setIsEventModalOpen(false);
+          setIsEditing(false); // Reset editing state when closing
+        }}
+      >
+        {selectedEvent && (
+          <div>
+            <h2>Appointment Details</h2>
 
-      {isEditing ? (
-        <form onSubmit={handleSaveChanges}>
-          <div>
-            <label>Name</label>
-            <input type="text" name="name" value={updatedData.name} onChange={handleInputChange} required />
+            {isEditing ? (
+              <form onSubmit={handleSaveChanges}>
+                <div>
+                  <label>Name</label>
+                  <input type="text" name="name" value={updatedData.name} onChange={handleInputChange} required />
+                </div>
+                <div>
+                  <label>Email</label>
+                  <input type="email" name="email" value={updatedData.email} onChange={handleInputChange} required />
+                </div>
+                <div>
+                  <label>Phone</label>
+                  <input type="text" name="phone" value={updatedData.phone} onChange={handleInputChange} required />
+                </div>
+                <div>
+                  <label>Artist</label>
+                  <select name="artistId" value={updatedData.artistId} onChange={handleInputChange} required>
+                    <option value="">Select Artist</option>
+                    {artists.map((artist) => (
+                      <option key={artist._id} value={artist._id}>
+                        {artist.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label>Type</label>
+                  <select name="type" value={updatedData.type} onChange={handleInputChange}>
+                    <option value="Tattoo">Tattoo</option>
+                    <option value="Piercing">Piercing</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Location</label>
+                  <input type="text" name="location" value={updatedData.location} onChange={handleInputChange} required />
+                </div>
+                <div>
+                  <label>Start Time</label>
+                  <input type="time" name="startTime" value={updatedData.startTime} onChange={handleInputChange} required onBlur={handleTimeChange}/>
+                </div>
+                <div>
+                  <label>End Time</label>
+                  <input type="time" name="endTime" value={updatedData.endTime} onChange={handleInputChange} required onBlur={handleTimeChange}/>
+                </div>
+                <div>
+                  <label>Deposit</label>
+                  <input type="number" name="deposit" value={updatedData.deposit} onChange={handleInputChange} required />
+                </div>
+                <div>
+                  <label>Total</label>
+                  <input type="number" name="total" value={updatedData.total} readOnly />
+                </div>
+                <div>
+                  <label>Reference Photos</label>
+                  <input
+                    type="file"
+                    name="referencePhotos"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files);
+                      setUpdatedData({ ...updatedData, referencePhotos: files });
+                    }}
+                    multiple
+                  />
+                </div>
+                <div>
+                  <label>Additional Details</label>
+                  <textarea name="additionalDetails" value={updatedData.additionalDetails} onChange={handleInputChange} />
+                </div>
+                <div>
+                  <label>
+                    <input type="checkbox" name="textReminder" checked={updatedData.textReminder} onChange={(e) =>
+                      setUpdatedData({ ...updatedData, textReminder: e.target.checked })
+                    } />
+                    Text Reminder
+                  </label>
+                </div>
+                <div>
+                  <label>
+                    <input type="checkbox" name="emailReminder" checked={updatedData.emailReminder} onChange={(e) =>
+                      setUpdatedData({ ...updatedData, emailReminder: e.target.checked })
+                    } />
+                    Email Reminder
+                  </label>
+                </div>
+              </form>
+            ) : (
+              <>
+                <p><strong>Artist:</strong> {selectedEvent.artist}</p>
+                <p><strong>Name:</strong> {selectedEvent.name}</p>
+                <p><strong>Email:</strong> {selectedEvent.email}</p>
+                <p><strong>Phone:</strong> {selectedEvent.phone}</p>
+                <p><strong>Type:</strong> {selectedEvent.type}</p>
+                <p><strong>Location:</strong> {selectedEvent.location}</p>
+                <p><strong>Date:</strong> {selectedEvent.date}</p>
+                <p><strong>Time:</strong> {selectedEvent.time.startTime} - {selectedEvent.time.endTime}</p>
+                <p><strong>Deposit:</strong> ${selectedEvent.deposit}</p>
+                <p><strong>Total:</strong> ${selectedEvent.total}</p>
+                <p><strong>Text Reminder:</strong> {selectedEvent.textReminder ? "Yes" : "No"}</p>
+                <p><strong>Email Reminder:</strong> {selectedEvent.emailReminder ? "Yes" : "No"}</p>
+                <p><strong>Additional Details:</strong> {selectedEvent.additionalDetails}</p>
+                <p><strong>Reference Photos:</strong></p>
+                {selectedEvent.referencePhotos && selectedEvent.referencePhotos.length > 0 ? (
+                  selectedEvent.referencePhotos.map((photo, index) => (
+                    <img key={index} src={photo} alt={`Reference ${index + 1}`} style={{ width: "100px", marginRight: "10px" }} />
+                  ))
+                ) : (
+                  <p>No reference photos uploaded.</p>
+                )}
+              </>
+            )}
           </div>
-          <div>
-            <label>Email</label>
-            <input type="email" name="email" value={updatedData.email} onChange={handleInputChange} required />
-          </div>
-          <div>
-            <label>Phone</label>
-            <input type="text" name="phone" value={updatedData.phone} onChange={handleInputChange} required />
-          </div>
-          <div>
-            <label>Artist</label>
-            <select name="artistId" value={updatedData.artistId} onChange={handleInputChange} required>
-              <option value="">Select Artist</option>
-              {artists.map((artist) => (
-                <option key={artist._id} value={artist._id}>
-                  {artist.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label>Type</label>
-            <select name="type" value={updatedData.type} onChange={handleInputChange}>
-              <option value="Tattoo">Tattoo</option>
-              <option value="Piercing">Piercing</option>
-            </select>
-          </div>
-          <div>
-            <label>Location</label>
-            <input type="text" name="location" value={updatedData.location} onChange={handleInputChange} required />
-          </div>
-          <div>
-            <label>Start Time</label>
-            <input type="time" name="startTime" value={updatedData.startTime} onChange={handleInputChange} required onBlur={handleTimeChange}/>
-          </div>
-          <div>
-            <label>End Time</label>
-            <input type="time" name="endTime" value={updatedData.endTime} onChange={handleInputChange} required onBlur={handleTimeChange}/>
-          </div>
-          <div>
-            <label>Deposit</label>
-            <input type="number" name="deposit" value={updatedData.deposit} onChange={handleInputChange} required />
-          </div>
-          <div>
-            <label>Total</label>
-            <input type="number" name="total" value={updatedData.total} readOnly />
-          </div>
-          <div>
-            <label>Reference Photos</label>
-            <input
-              type="file"
-              name="referencePhotos"
-              onChange={(e) => {
-                const files = Array.from(e.target.files);
-                setUpdatedData({ ...updatedData, referencePhotos: files });
-              }}
-              multiple
-            />
-          </div>
-          <div>
-            <label>Additional Details</label>
-            <textarea name="additionalDetails" value={updatedData.additionalDetails} onChange={handleInputChange} />
-          </div>
-          <div>
-            <label>
-              <input type="checkbox" name="textReminder" checked={updatedData.textReminder} onChange={(e) =>
-                setUpdatedData({ ...updatedData, textReminder: e.target.checked })
-              } />
-              Text Reminder
-            </label>
-          </div>
-          <div>
-            <label>
-              <input type="checkbox" name="emailReminder" checked={updatedData.emailReminder} onChange={(e) =>
-                setUpdatedData({ ...updatedData, emailReminder: e.target.checked })
-              } />
-              Email Reminder
-            </label>
-          </div>
-        </form>
-      ) : (
-        <>
-          <p><strong>Artist:</strong> {selectedEvent.artist}</p>
-          <p><strong>Name:</strong> {selectedEvent.name}</p>
-          <p><strong>Email:</strong> {selectedEvent.email}</p>
-          <p><strong>Phone:</strong> {selectedEvent.phone}</p>
-          <p><strong>Type:</strong> {selectedEvent.type}</p>
-          <p><strong>Location:</strong> {selectedEvent.location}</p>
-          <p><strong>Date:</strong> {selectedEvent.date}</p>
-          <p><strong>Time:</strong> {selectedEvent.time.startTime} - {selectedEvent.time.endTime}</p>
-          <p><strong>Deposit:</strong> ${selectedEvent.deposit}</p>
-          <p><strong>Total:</strong> ${selectedEvent.total}</p>
-          <p><strong>Text Reminder:</strong> {selectedEvent.textReminder ? "Yes" : "No"}</p>
-          <p><strong>Email Reminder:</strong> {selectedEvent.emailReminder ? "Yes" : "No"}</p>
-          <p><strong>Additional Details:</strong> {selectedEvent.additionalDetails}</p>
-          <p><strong>Reference Photos:</strong></p>
-          {selectedEvent.referencePhotos && selectedEvent.referencePhotos.length > 0 ? (
-            selectedEvent.referencePhotos.map((photo, index) => (
-              <img key={index} src={photo} alt={`Reference ${index + 1}`} style={{ width: "100px", marginRight: "10px" }} />
-            ))
-          ) : (
-            <p>No reference photos uploaded.</p>
-          )}
-        </>
-      )}
-    </div>
-  )}
-  {isEditing ? (
-    <button onClick={handleSaveChanges}>Save Changes</button>
-  ) : (
-    <button onClick={handleEditClick}>Update Appointment</button>
-  )}
-  <button onClick={handleDeleteAppointment}>Delete Appointment</button>
-</Modal>
+        )}
+        {isEditing ? (
+          <button onClick={handleSaveChanges}>Save Changes</button>
+        ) : (
+          <button onClick={handleEditClick}>Update Appointment</button>
+        )}
+        <button onClick={handleDeleteAppointment}>Delete Appointment</button>
+      </Modal>
 
 
       {isConfirmModalOpen && (
