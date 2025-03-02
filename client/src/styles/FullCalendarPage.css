@@ -1,0 +1,183 @@
+/* General Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f4f4f4;
+  }
+  
+  .fullcalendar-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-top: 20px;
+  }
+  
+  /* Header */
+  .calendar-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .calendar-title {
+    font-size: 22px;
+    color: #333;
+  }
+  
+  /* FullCalendar Customization */
+  .fc .fc-toolbar-title {
+    font-size: 24px;
+    color: #333;
+  }
+  
+  .fc-button {
+    border-radius: 12px;
+    font-size: 16px;
+    padding: 8px 16px;
+    background-color: #007aff;
+    color: white;
+    border: none;
+  }
+  
+  .fc-button:hover {
+    background-color: #005bb5;
+  }
+  
+  .fc-daygrid-day-number {
+    font-size: 16px;
+    color: #333;
+  }
+  
+  /* Event styling */
+  .fc-event {
+    border-radius: 0;
+    border: none;
+    background-color: #797979;
+    color: white;
+  }
+  
+  .fc-event:hover {
+    background-color: #5c5c5c;
+    cursor: pointer;
+  }
+
+  .modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  button {
+    margin: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .close-button {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  button:hover {
+    opacity: 0.9;
+  }
+
+/* Artist Key */
+.artist-key-container {
+  text-align: center;
+}
+
+.artist-key-container h2 {
+  font-size: 24px;
+  margin: 20px 0 10px 0;
+}
+
+.artist-key {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.artist-key-info {
+  width: 18%;
+  text-align: center;
+}
+
+.artist-color {
+  width: 100%;
+  height: 20px;
+  border: 1px solid #333;
+}
+
+.artist-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.artist-buttons button {
+  padding: 10px 20px;
+  border-radius: 0px;
+  background-color: #797979;
+  color: white;
+  border: none;
+  cursor: pointer;
+  width: 50%;
+}
+
+.artist-buttons button:hover {
+  background-color: #5c5c5c;
+}
+
+/* Animation for popup */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+  
+  /* Responsive Design */
+  @media (max-width: 500px) {
+    .fullcalendar-container {
+      padding: 15px;
+    }
+  
+    .calendar-title {
+      font-size: 18px;
+    }
+  
+    .fc-button {
+      font-size: 14px;
+    }
+  }
+  

@@ -1,11 +1,20 @@
 import express from "express";
-import upload from "../middleware/uploadMiddleware.js";
-import { uploadImage, deleteImage, getImagesByArtist } from "../controllers/galleryController.js";
+import { 
+    createGalleryItem, 
+    deleteImage, 
+    getImagesByArtist 
+} from "../controllers/galleryController.js";
 
 const router = express.Router();
 
-router.post("/upload", upload.single("image"), uploadImage);
+// Create Gallery Item (metadata + Cloudinary URL)
+router.post("/upload", createGalleryItem);
+
+// Delete Gallery Item
 router.delete("/:id", deleteImage);
-router.get("/artist/:artistId", getImagesByArtist);
+
+// Get All Images for an Artist
+router.get("/:artistId", getImagesByArtist);
 
 export default router;
+

@@ -7,14 +7,12 @@ export const registerAdmin = async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        // Check if username already exists
         const existingAdmin = await InkIvoryAdmin.findOne({ username });
         if (existingAdmin) {
             return res.status(400).json({ message: "Username already exists" });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newAdmin = new InkIvoryAdmin({ username, password: hashedPassword });
+        const newAdmin = new InkIvoryAdmin({ username, password });
         await newAdmin.save();
 
         res.status(201).json({ message: "Admin registered successfully" });
@@ -22,6 +20,7 @@ export const registerAdmin = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
 
 // Login Ink & Ivory Admin
 export const loginAdmin = async (req, res) => {
