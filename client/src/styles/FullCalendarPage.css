@@ -9,9 +9,18 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background-color: #f4f4f4;
   }
-  
+
+  .page-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
   .fullcalendar-container {
-    max-width: 800px;
+    min-width: 1000px;
+  }
+  
+  .fullcalendar-container, .left-side, .right-side {
     margin: 0 auto;
     background-color: #fff;
     border-radius: 16px;
@@ -30,6 +39,29 @@
     font-size: 22px;
     color: #333;
   }
+
+  /* Left Side */
+  .left-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 300px;
+  }
+
+  .appointment-block {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .todays-appointments h2 {
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+  }
+
   
   /* FullCalendar Customization */
   .fc .fc-toolbar-title {
@@ -54,13 +86,19 @@
     font-size: 16px;
     color: #333;
   }
+
+  .closed-day {
+    background-color: #e0e0e0 !important; /* Light grey */
+    pointer-events: none; /* Prevent clicks */
+    opacity: 0.6;
+  }
   
   /* Event styling */
   .fc-event {
+    padding: 0;
     border-radius: 0;
     border: none;
-    background-color: #797979;
-    color: white;
+    color: rgb(255, 255, 255);
   }
   
   .fc-event:hover {
@@ -106,9 +144,23 @@
     opacity: 0.9;
   }
 
+  .preview {
+    width: 100px;
+    margin: 10px 0;
+    border: 1px solid #333;
+  }
+
 /* Artist Key */
+.right-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 300px;
+}
+
 .artist-key-container {
   text-align: center;
+  width: 100%;
 }
 
 .artist-key-container h2 {
@@ -118,6 +170,7 @@
 
 .artist-key {
   display: flex;
+  flex-direction: column;
   justify-content: space-around;
   align-items: center;
 }
@@ -127,6 +180,13 @@
   margin: 10px;
   font-size: 14px;
   text-align: center;
+  width: 100%;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .artist-color {
@@ -137,18 +197,18 @@
 
 .artist-buttons {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
   margin-top: 20px;
 }
 
 .artist-buttons button {
   padding: 10px 20px;
-  border-radius: 0px;
+  border-radius: 8px;
   background-color: #797979;
   color: white;
   border: none;
   cursor: pointer;
-  width: 50%;
 }
 
 .artist-buttons button:hover {
