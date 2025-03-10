@@ -19,6 +19,10 @@
     position: relative;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   }
+
+  .modal-content h2 {
+    margin: 20px 0 10px 0;
+  }
   
   .modal-close {
     position: absolute;
@@ -28,6 +32,34 @@
     border: none;
     font-size: 24px;
     cursor: pointer;
+  }
+
+  /* Form */
+
+  form div, .cloudinary {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 5px;
+
+  }
+
+  label {
+    display: block;
+    width: 40%;
+    text-align: left;
+  }
+
+  input, textarea4, .cloudinary {
+    width: 60%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .stack {
+    display: flex;
+    justify-content: space-between;
   }
 
   

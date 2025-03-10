@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const requestedTimeOffSchema = new mongoose.Schema({
+    artist: { type: mongoose.Schema.Types.ObjectId, ref: "Artist", required: true },
     start:{
         date: { type: String, required: true },
         startTime: { type: String, required: true },

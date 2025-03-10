@@ -18,6 +18,7 @@
 
   .fullcalendar-container {
     min-width: 1000px;
+    flex: 1;
   }
   
   .fullcalendar-container, .left-side, .right-side {
@@ -26,7 +27,7 @@
     border-radius: 16px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    margin-top: 20px;
+    margin: 20px;
   }
   
   /* Header */
@@ -41,7 +42,7 @@
   }
 
   /* Left Side */
-  .left-side {
+  /* .left-side {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -55,7 +56,7 @@
     margin-bottom: 10px;
     border-radius: 8px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-  }
+  } */
   
   .todays-appointments h2 {
     margin-bottom: 15px;
@@ -95,9 +96,9 @@
   
   /* Event styling */
   .fc-event {
-    padding: 0;
     border-radius: 0;
     border: none;
+    text-align: center;
     color: rgb(255, 255, 255);
   }
   
@@ -150,12 +151,13 @@
     border: 1px solid #333;
   }
 
-/* Artist Key */
-.right-side {
+/* Artist Key  and Todays Appointments*/
+.right-side, .left-side {
   display: flex;
   flex-direction: column;
   align-items: center;
   min-width: 300px;
+  flex: 1;
 }
 
 .artist-key-container {
@@ -170,21 +172,23 @@
 
 .artist-key {
   display: flex;
-  flex-direction: column;
+  /* flex-direction: column; */
   justify-content: space-around;
   align-items: center;
+  flex-wrap: wrap;
 }
 
-.artist-key-info {
-  flex: 1;
-  margin: 10px;
+.artist-key-info, .appointment-block {
+  flex: 2;
   font-size: 14px;
   text-align: center;
-  width: 100%;
+  width: clamp(150px, 275px, 300px);
+  min-width: 150px;
+  max-width: 300px;
   background-color: #f9f9f9;
   border: 1px solid #ddd;
   padding: 10px;
-  margin-bottom: 10px;
+  margin: 0 .5% 10px.5%;
   border-radius: 8px;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -197,12 +201,16 @@
 
 .artist-buttons {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   justify-content: space-between;
   margin-top: 20px;
+  width: 100%;
+
 }
 
 .artist-buttons button {
+  flex: 2;
+  width: clamp(300px, 50%, 100%);
   padding: 10px 20px;
   border-radius: 8px;
   background-color: #797979;
