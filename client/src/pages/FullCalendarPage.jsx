@@ -6,6 +6,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import Modal from "../components/Modal"; // Import your Modal component
 import CloudinaryUploader from '../components/CloudinaryUploader';
+import GalleryUpload from '../components/GalleryUpload';
 import "../styles/FullCalendarPage.css";
 
 const FullCalendarPage = () => {
@@ -14,7 +15,7 @@ const FullCalendarPage = () => {
   const closedDates = []; //["2025-12-25", "2025-01-01"]; // Example closed dates (Christmas, New Year)
   const [selectedArtist, setSelectedArtist] = useState("");
   // const [selectedArtistForSort, setSelectedArtistForSort] = useState(""); // Sorting
-  const [selectedArtistForTimeOff, setSelectedArtistForTimeOff] = useState(null); // Time Off
+  const [selectedArtistForTimeOff, setSelectedArtistForTimeOff] = useState([]); // Time Off
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -48,6 +49,7 @@ const FullCalendarPage = () => {
     reason: "",
   });
   const [timeOffEvents, setTimeOffEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -65,6 +67,7 @@ const FullCalendarPage = () => {
     emailReminder: false,
     artistId: "",
   });
+  const [galleryImages, setGalleryImages] = useState([]);
 
   const initialFormState = {
     name: "",
@@ -115,6 +118,7 @@ const FullCalendarPage = () => {
     }));
 
     setShowModal(true);
+    
   };      
 
   const isClosedDay = (date) => {
@@ -134,7 +138,7 @@ const FullCalendarPage = () => {
       const artistId = clickInfo.event.extendedProps.artistId; // Assuming artistId is stored in event's extendedProps
       const event = clickInfo.event; // Use the event object directly
       const appointment = clickInfo.event.extendedProps; // Assuming appointment details are stored in extendedProps
-      console.log("Appointment details:", clickInfo.event.extendedProps);
+      // console.log("Appointment details:", clickInfo.event.extendedProps);
   
       if (!artistId) {
         console.error("Artist ID is missing for this appointment.");
@@ -171,9 +175,20 @@ const FullCalendarPage = () => {
     } catch (error) {
       console.error("Error fetching appointment details:", error);
     }
-  };  
+  };
   
+  const handleViewChange = (view) => {
+    if (view.type === "timeGridWeek" || view.type === "timeGridDay") {
+      setFilteredEvents([...events, ...timeOffEvents]); // Show time-off events in week/day view
+    } else {
+      setFilteredEvents([...events]); // Only show appointments in month view
+    }
+  };
 
+  useEffect(() => {
+    setFilteredEvents(events); // Ensure appointments load first
+  }, [events]);
+  
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedDate(null);
@@ -324,6 +339,7 @@ const FullCalendarPage = () => {
     try {
       let uploadedUrls = [];
       const clientName = formData.name.trim(); // Store name before mapping to avoid loss of reference
+      const dateStr = formData.date.split("T")[0]; // Extract date string from full date-time string
   
       // Upload images if there are any selected files
       if (selectedFiles.length > 0) {
@@ -332,9 +348,9 @@ const FullCalendarPage = () => {
             const fileData = new FormData(); // Renamed variable to avoid overwriting state
             fileData.append("file", file);
             fileData.append("upload_preset", "my_unsigned_preset");
-            fileData.append("folder", `InkIvory/${clientName}`); // Ensure folder path remains correct
+            fileData.append("folder", `InkIvory/${clientName}.${dateStr}`); // Ensure folder path remains correct
   
-            console.log("Uploading to folder:", `InkIvory/${clientName}`);
+            console.log("Uploading to folder:", `InkIvory/${clientName}.${dateStr}`);
   
             try {
               const response = await axios.post(
@@ -557,16 +573,49 @@ const formatDate = (dateString) => {
 
   const handleAddNewArtist = async (e) => {
     e.preventDefault();
+  
     try {
-      const response = await axios.post("/api/artists", newArtist);
-      console.log("New artist created:", response.data);
+      let profilePictureUrl = null; // Default to null instead of an empty string
+  
+      // Upload profile picture if a file is selected
+      if (newArtist.profilePicture) {
+        const fileData = new FormData();
+        fileData.append("file", newArtist.profilePicture);
+        fileData.append("upload_preset", "my_unsigned_preset");
+        fileData.append("folder", `InkIvory/Artists/${newArtist.name}`);
+  
+        console.log("Uploading to Cloudinary folder:", `InkIvory/Artists/${newArtist.name}`);
+  
+        try {
+          const response = await axios.post(
+            "https://api.cloudinary.com/v1_1/dwp2h5cak/image/upload",
+            fileData
+          );
+          profilePictureUrl = response.data.secure_url;
+        } catch (uploadError) {
+          console.error("🔥 Error uploading profile picture to Cloudinary:", uploadError);
+          return; // Stop execution if upload fails
+        }
+      }
+  
+      // Create new artist data (only include profilePic if it's uploaded)
+      const requestData = {
+        ...newArtist,
+        ...(profilePictureUrl && { profilePic: profilePictureUrl }), // Only add if it's not null
+      };
+  
+      // Send artist data to backend
+      const response = await axios.post("/api/artists", requestData);
+      console.log("✅ New artist created:", response.data);
+  
+      // Reset form and close modal
       setNewArtist({});
       setIsAddArtistModalOpen(false);
       fetchArtists(setArtists);
     } catch (error) {
-      console.error("Error creating new artist:", error);
+      console.error("🔥 Error creating new artist:", error);
     }
-  };
+  };    
 
   const handleAddArtist = () => {
     setIsAddArtistModalOpen(true);
@@ -625,8 +674,7 @@ const formatDate = (dateString) => {
       alert("Please fill in all required fields.");
       return;
     }
-  
-    // Prepare correctly structured data for the API
+
     const timeOffRequest = {
       start: {
         date: timeOffData.start[0].date,
@@ -662,12 +710,14 @@ const formatDate = (dateString) => {
     const fetchTimeOffRequests = async () => {
       try {
         const response = await axios.get("/api/time-off");
+        console.log("Fetched time-off requests:", response.data);
+        
         const formattedEvents = response.data.map((request) => ({
           id: request._id,
           title: `Time Off - ${request.artist.name}`, // Show artist name
           start: new Date(request.start.date + "T" + request.start.startTime),
           end: new Date(request.end.date + "T" + request.end.endTime),
-          backgroundColor: "red", // You can style this
+          backgroundColor: "grey", // You can style this
         }));
         setTimeOffEvents(formattedEvents);
       } catch (error) {
@@ -677,6 +727,11 @@ const formatDate = (dateString) => {
   
     fetchTimeOffRequests();
   }, []);
+
+  // Gallery Upload
+  const handleUploadComplete = (urls) => {
+    setGalleryImages((prevImages) => [...prevImages, ...urls]);
+  };
 
   return (
     <div className="page-container">
@@ -721,7 +776,7 @@ const formatDate = (dateString) => {
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
-          events={ events }
+          events={filteredEvents}
           eventColor="#3788d8"
           eventTextColor="#fff"
           dateClick={handleDateClick} // Handles clicking on an empty date
@@ -731,6 +786,8 @@ const formatDate = (dateString) => {
             center: "title",
             right: "dayGridMonth,timeGridWeek,timeGridDay",
           }}
+          viewDidMount={(arg) => handleViewChange(arg.view)} // Detect initial view on load
+          datesSet={(arg) => handleViewChange(arg.view)} // Detect when user changes view
           slotMinTime="08:00:00"
           slotMaxTime="21:00:00"
           allDaySlot={false}
@@ -761,6 +818,26 @@ const formatDate = (dateString) => {
         <Modal show={showModal} onClose={handleCloseModal}>
           <h2>Create Appointment for {selectedDate}</h2>
           <form onSubmit={handleSubmit}>
+          <div className="stack">
+              <div>
+                <label>Artist</label>
+                <select name="artistId" value={formData.artistId} onChange={handleChange} required>
+                  <option value="">Select Artist</option>
+                  {artists.map((artist) => (
+                    <option key={artist._id} value={artist._id}>
+                      {artist.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label>Type</label>
+                <select name="type" value={formData.type} onChange={handleChange}>
+                  <option value="Tattoo">Tattoo</option>
+                  <option value="Piercing">Piercing</option>
+                </select>
+              </div>
+            </div>
             <div>
               <label>Name</label>
               <input type="text" name="name" value={formData.name} onChange={handleChange} required />
@@ -772,24 +849,6 @@ const formatDate = (dateString) => {
             <div>
               <label>Phone</label>
               <input type="text" name="phone" value={formData.phone} onChange={handleChange} required />
-            </div>
-            <div>
-              <label>Artist</label>
-              <select name="artistId" value={formData.artistId} onChange={handleChange} required>
-                <option value="">Select Artist</option>
-                {artists.map((artist) => (
-                  <option key={artist._id} value={artist._id}>
-                    {artist.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label>Type</label>
-              <select name="type" value={formData.type} onChange={handleChange}>
-                <option value="Tattoo">Tattoo</option>
-                <option value="Piercing">Piercing</option>
-              </select>
             </div>
             <div>
               <label>Location</label>
@@ -812,30 +871,30 @@ const formatDate = (dateString) => {
               <input type="number" name="total" value={formData.total} readOnly onBlur={handleTimeChange}/>
             </div>
             <div>
-            <label>
-              Reference Photos
-              <CloudinaryUploader onFilesSelected={handleFilesSelected} />
-            </label>
+              <label>Reference Photos</label>
+                <CloudinaryUploader onFilesSelected={handleFilesSelected} />
             </div>
             <div>
               <label>Additional Details</label>
               <textarea name="additionalDetails" value={formData.additionalDetails} onChange={handleChange} />
             </div>
-            <div>
-              <label>
+            <div className="stack">
+              <div>
                 <input type="checkbox" name="textReminder" checked={formData.textReminder} onChange={(e) =>
-                  setFormData({ ...formData, textReminder: e.target.checked })
-                } />
-                Text Reminder
-              </label>
-            </div>
-            <div>
-              <label>
+                    setFormData({ ...formData, textReminder: e.target.checked })
+                  } />
+                <label>
+                  Text Reminder
+                </label>
+              </div>
+              <div>
                 <input type="checkbox" name="emailReminder" checked={formData.emailReminder} onChange={(e) =>
                   setFormData({ ...formData, emailReminder: e.target.checked })
                 } />
-                Email Reminder
-              </label>
+                <label>
+                  Email Reminder
+                </label>
+              </div>
             </div>
             <button type="submit">Create Appointment</button>
           </form>
@@ -1023,7 +1082,7 @@ const formatDate = (dateString) => {
                 </div>
                 <div>
                   <label>Profile Picture</label>
-                  <input type="text" name="profilePic" value={newArtist.profilePic} onChange={handleNewArtistChange} required />
+                  <CloudinaryUploader onChange={(e) => setNewArtist({ ...newArtist, profilePicture: e.target.files[0] })} />
                 </div>
                 <div>
                   <label>Hourly Rate</label>
@@ -1177,6 +1236,9 @@ const formatDate = (dateString) => {
           </Modal>
         )}
 
+        <div className="gallery-uploader">
+          <GalleryUpload onUploadComplete={handleUploadComplete} />
+        </div>
       </div>
 
       <div className="right-side">

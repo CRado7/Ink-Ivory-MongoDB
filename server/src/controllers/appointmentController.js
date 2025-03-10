@@ -4,7 +4,7 @@ import Artist from "../models/Artist.js";
 // Create an appointment
 export const createAppointment = async (req, res) => {
   try {
-      console.log("🚀 Creating appointment with data:", req.body);
+      // console.log("🚀 Creating appointment with data:", req.body);
 
       const artist = await Artist.findById(req.params.artistId);
       if (!artist) {
