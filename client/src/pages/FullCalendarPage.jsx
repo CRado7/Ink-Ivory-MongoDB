@@ -293,7 +293,6 @@ const FullCalendarPage = () => {
     const duration = (end - start) / 1000 / 60 / 60;
   
     if (formData.type === "Piercing") {
-      // If the type is Piercing, set total to 30
       setFormData((prevData) => ({
         ...prevData,
         total: 30,
@@ -529,7 +528,7 @@ const formatDate = (dateString) => {
       artistId: selectedEvent.artistId,
     });
   
-    setIsConfirmModalOpen(true); // Open the confirmation modal
+    setIsConfirmModalOpen(true);
   };
   
   const confirmDelete = async () => {
@@ -818,10 +817,26 @@ const formatDate = (dateString) => {
         <Modal show={showModal} onClose={handleCloseModal}>
           <h2>Create Appointment for {selectedDate}</h2>
           <form onSubmit={handleSubmit}>
-          <div className="stack">
+            <div>
+              {/* <label>Name</label> */}
+              <input className="full" type="text" name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
+            </div>
+            <div>
+
+            <div className="stack">
+                {/* <label>Email</label> */}
+                <input className="half" type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
+              </div>
               <div>
-                <label>Artist</label>
-                <select name="artistId" value={formData.artistId} onChange={handleChange} required>
+                {/* <label>Phone</label> */}
+                <input className="half" type="text" name="phone" placeholder="Phone" value={formData.phone} onChange={handleChange} required />
+              </div>
+            </div>
+
+            <div className="stack">
+              <div>
+                {/* <label>Artist</label> */}
+                <select className="full" name="artistId" value={formData.artistId} onChange={handleChange} required>
                   <option value="">Select Artist</option>
                   {artists.map((artist) => (
                     <option key={artist._id} value={artist._id}>
@@ -831,54 +846,44 @@ const formatDate = (dateString) => {
                 </select>
               </div>
               <div>
-                <label>Type</label>
-                <select name="type" value={formData.type} onChange={handleChange}>
+                {/* <label>Type</label> */}
+                <select className="full" name="type" value={formData.type} onChange={handleChange}>
                   <option value="Tattoo">Tattoo</option>
                   <option value="Piercing">Piercing</option>
                 </select>
               </div>
             </div>
+
             <div>
-              <label>Name</label>
-              <input type="text" name="name" value={formData.name} onChange={handleChange} required />
-            </div>
-            <div>
-              <label>Email</label>
-              <input type="email" name="email" value={formData.email} onChange={handleChange} required />
-            </div>
-            <div>
-              <label>Phone</label>
-              <input type="text" name="phone" value={formData.phone} onChange={handleChange} required />
-            </div>
-            <div>
-              <label>Location</label>
-              <input type="text" name="location" value={formData.location} onChange={handleChange} required />
+              {/* <label>Location</label> */}
+              <input className="full" type="text" name="location" placeholder="Location" value={formData.location} onChange={handleChange} required />
             </div>
             <div>
               <label>Start Time</label>
-              <input type="time" name="startTime" value={formData.startTime} onChange={handleChange} required onBlur={handleTimeChange} />
+              <input type="time" name="startTime" placeholder="Start Time" value={formData.startTime} onChange={handleChange} required onBlur={handleTimeChange} />
             </div>
             <div>
               <label>End Time</label>
               <input type="time" name="endTime" value={formData.endTime} onChange={handleChange} required onBlur={handleTimeChange} />
             </div>
-            <div>
-              <label>Deposit</label>
-              <input type="number" name="deposit" value={formData.deposit} onChange={handleChange} required onBlur={handleTimeChange} />
-            </div>
-            <div>
-              <label>Total</label>
-              <input type="number" name="total" value={formData.total} readOnly onBlur={handleTimeChange}/>
-            </div>
-            <div>
+            <div className="stack">      
+              <div>
+                <label>Deposit</label>
+                <input type="number" name="deposit" value={formData.deposit} onChange={handleChange} required onBlur={handleTimeChange} />
+              </div>
+              <div>
+                <label>Total</label>
+                <input type="number" name="total" value={formData.total} readOnly onBlur={handleTimeChange}/>
+              </div>
+            </div> 
+
               <label>Reference Photos</label>
-                <CloudinaryUploader onFilesSelected={handleFilesSelected} />
-            </div>
-            <div>
+                <CloudinaryUploader className="full" onFilesSelected={handleFilesSelected} />
               <label>Additional Details</label>
-              <textarea name="additionalDetails" value={formData.additionalDetails} onChange={handleChange} />
+            <div>
+              <textarea className="full" name="additionalDetails" value={formData.additionalDetails} onChange={handleChange} />
             </div>
-            <div className="stack">
+            {/* <div className="stack">
               <div>
                 <input type="checkbox" name="textReminder" checked={formData.textReminder} onChange={(e) =>
                     setFormData({ ...formData, textReminder: e.target.checked })
@@ -895,7 +900,7 @@ const formatDate = (dateString) => {
                   Email Reminder
                 </label>
               </div>
-            </div>
+            </div> */}
             <button type="submit">Create Appointment</button>
           </form>
         </Modal>

@@ -23,7 +23,7 @@ const CloudinaryUploader = ({ onFilesSelected }) => {
   };
 
   return (
-    <div className="cloudinary">
+    <div className="cloudinary full">
       <input type="file" multiple accept="image/*" onChange={handleFileSelection} />
       <div className="previews">
         {previewUrls.map((url, index) => (

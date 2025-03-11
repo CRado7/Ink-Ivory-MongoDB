@@ -36,21 +36,21 @@
 
   /* Form */
 
-  form div, .cloudinary {
-    display: flex;
-    justify-content: flex-start;
-    margin-bottom: 5px;
-
+  .full {
+    width: 100%;
   }
 
-  label {
+  .half {
+    width: 45%;
+  }
+
+  /* label {
     display: block;
-    width: 40%;
+    width: 30%;
     text-align: left;
-  }
+  } */
 
-  input, textarea4, .cloudinary {
-    width: 60%;
+  input, textarea, select {
     padding: 10px;
     margin-bottom: 10px;
     border: 1px solid #ccc;
