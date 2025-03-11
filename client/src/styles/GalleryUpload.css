@@ -15,14 +15,14 @@
     background: #e0e0e0;
   }
   
-  .preview {
+  .dropzone-preview {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     margin-top: 20px;
   }
   
-  .preview img {
+  .dropzone-preview img {
     width: 100px;
     height: 100px;
     object-fit: cover;

@@ -6,6 +6,7 @@ import LoginPage from "./pages/Login";
 import FullCalendarPage from "./pages/FullCalendarPage";
 import HomePage from "./pages/HomePage";
 import Artists from "./pages/Artists";
+import Gallery from "./pages/Gallery";
 import Contact from "./pages/Contact";
 import NavBar from "./components/NavBar";
 import Footer from "./components/Footer";
@@ -27,6 +28,7 @@ const App = () => {
           />
           <Route path="/" element={<HomePage />} />
           <Route path="/artists" element={<Artists />} />
+          <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<Contact />} />
         </Routes>
         <Footer />

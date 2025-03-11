@@ -1237,6 +1237,7 @@ const formatDate = (dateString) => {
         )}
 
         <div className="gallery-uploader">
+          <h2>Gallery Upload</h2>
           <GalleryUpload onUploadComplete={handleUploadComplete} />
         </div>
       </div>

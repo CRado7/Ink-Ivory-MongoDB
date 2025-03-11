@@ -1,0 +1,33 @@
+.gallery {
+    padding: 2rem;
+    text-align: center;
+  }
+  
+  .gallery h2 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+  
+  .gallery-item {
+    overflow: hidden;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+  }
+  
+  .gallery-item img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  
+  .gallery-item:hover {
+    transform: scale(1.05);
+  }
+  
