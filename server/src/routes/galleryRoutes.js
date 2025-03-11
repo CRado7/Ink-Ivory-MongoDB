@@ -2,7 +2,8 @@ import express from "express";
 import { 
     createGalleryItem, 
     deleteImage, 
-    getImagesByArtist 
+    getImagesByArtist,
+    getGallery
 } from "../controllers/galleryController.js";
 
 const router = express.Router();
@@ -15,6 +16,9 @@ router.delete("/:id", deleteImage);
 
 // Get All Images for an Artist
 router.get("/:artistId", getImagesByArtist);
+
+// Get All Images
+router.get("/", getGallery);
 
 export default router;
 

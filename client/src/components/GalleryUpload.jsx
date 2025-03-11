@@ -11,16 +11,18 @@ const GalleryUpload = ({ onUploadComplete }) => {
     setFiles((prevFiles) => [...prevFiles, ...acceptedFiles]);
   }, []);
 
+  const { getRootProps, getInputProps } = useDropzone({ onDrop });
+
   const handleUpload = async () => {
     setUploading(true);
     const uploadedUrls = [];
-
+  
     for (const file of files) {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("upload_preset", "my_unsigned_preset"); // Change to your preset
-      formData.append("folder", "InkIvory/Gallery"); // Store in the gallery folder
-
+      formData.append("upload_preset", "my_unsigned_preset");
+      formData.append("folder", "InkIvory/Gallery");
+  
       try {
         const response = await axios.post(
           `https://api.cloudinary.com/v1_1/dwp2h5cak/image/upload`,
@@ -28,26 +30,38 @@ const GalleryUpload = ({ onUploadComplete }) => {
         );
         uploadedUrls.push(response.data.secure_url);
       } catch (error) {
-        console.error("Error uploading file:", error);
+        console.error("🔥 Error uploading file to Cloudinary:", error);
       }
     }
-
-    setUploading(false);
-    setFiles([]); // Reset file list after upload
-
-    if (onUploadComplete) {
-      onUploadComplete(uploadedUrls); // Pass URLs to parent component
+  
+    if (uploadedUrls.length > 0) {
+      try {
+        // ✅ Send one request per uploaded image URL
+        await Promise.all(
+          uploadedUrls.map(async (url) => {
+            await axios.post("/api/gallery/upload", { imageUrl: url });
+          })
+        );
+        console.log("✅ Images saved to database");
+      } catch (error) {
+        console.error("🔥 Error saving to database:", error);
+      }
     }
+  
+    setUploading(false);
+    setFiles([]);
   };
+  
 
   return (
     <div className="gallery-upload">
-      <div {...useDropzone({ onDrop })} className="dropzone">
+      <div {...getRootProps()} className="dropzone">
+        <input {...getInputProps()} />
         <p>Drag & Drop images here, or click to select</p>
       </div>
 
       {files.length > 0 && (
-        <div className="preview">
+        <div className="dropzone-preview">
           {files.map((file, index) => (
             <img key={index} src={URL.createObjectURL(file)} alt="preview" />
           ))}
