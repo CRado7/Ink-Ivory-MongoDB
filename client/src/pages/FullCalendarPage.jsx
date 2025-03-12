@@ -195,7 +195,6 @@ const FullCalendarPage = () => {
     setFormData(initialFormState);
   };
 
-  // Need to fetch artist appoint1
   const fetchAppointments = async () => {
     try {
       // Ensure selectedArtist.id is used instead of the whole object
@@ -317,19 +316,27 @@ const FullCalendarPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
   
-    const selectedDate = new Date(formData.date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time to midnight for comparison
-    const currentTime = new Date();
-    const selectedStartTime = new Date(`${formData.date}T${formData.startTime}:00`);
+    const [year, month, day] = formData.date.split('-');
+    const selectedDate = new Date(year, month - 1, day);
+    selectedDate.setHours(0, 0, 0, 0); 
   
-    // ❌ Prevent scheduling on past days
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); 
+  
+    const currentTime = new Date();
+  
+    const selectedStartTime = new Date(
+      year,
+      month - 1,
+      day,
+      ...formData.startTime.split(':')
+    );
+  
     if (selectedDate < today) {
       alert("❌ You cannot schedule an appointment in the past.");
       return;
     }
-  
-    // ❌ Prevent selecting a past time if booking for today
+
     if (selectedDate.getTime() === today.getTime() && selectedStartTime < currentTime) {
       alert("❌ You cannot schedule an appointment for an earlier time today.");
       return;
@@ -337,17 +344,16 @@ const FullCalendarPage = () => {
   
     try {
       let uploadedUrls = [];
-      const clientName = formData.name.trim(); // Store name before mapping to avoid loss of reference
-      const dateStr = formData.date.split("T")[0]; // Extract date string from full date-time string
+      const clientName = formData.name.trim(); 
+      const dateStr = formData.date.split("T")[0]; 
   
-      // Upload images if there are any selected files
       if (selectedFiles.length > 0) {
         uploadedUrls = await Promise.all(
           selectedFiles.map(async (file) => {
-            const fileData = new FormData(); // Renamed variable to avoid overwriting state
+            const fileData = new FormData(); 
             fileData.append("file", file);
             fileData.append("upload_preset", "my_unsigned_preset");
-            fileData.append("folder", `InkIvory/${clientName}.${dateStr}`); // Ensure folder path remains correct
+            fileData.append("folder", `InkIvory/${clientName}.${dateStr}`); 
   
             console.log("Uploading to folder:", `InkIvory/${clientName}.${dateStr}`);
   
@@ -364,21 +370,17 @@ const FullCalendarPage = () => {
           })
         );
   
-        // Remove any failed uploads (null values)
         uploadedUrls = uploadedUrls.filter((url) => url !== null);
       }
   
-      // Create request data with uploaded image URLs
       const requestData = {
         ...formData,
-        referencePhotos: uploadedUrls, // Store uploaded URLs in form data
+        referencePhotos: uploadedUrls,
       };
   
-      // Send appointment data to backend
       const response = await axios.post(`/api/appointments/${formData.artistId}/appointments`, requestData);
       console.log("✅ Appointment created:", response.data);
   
-      // Reset form and close modal
       setShowModal(false);
       setFormData(initialFormState);
       await fetchAppointments(setEvents, artists);
@@ -391,13 +393,11 @@ const FullCalendarPage = () => {
 const formatTime = (timeString) => {
   if (!timeString) return "";
 
-  // If already in HH:mm format, return as is
   if (/^\d{2}:\d{2}$/.test(timeString)) return timeString;
 
   console.log("Converting time:", timeString);
 
   try {
-    // Use regex to capture time format (e.g., "2:30 PM")
     const match = timeString.match(/(\d+):(\d+) (\w{2})/);
     if (!match) throw new Error("Invalid format");
 
@@ -405,14 +405,12 @@ const formatTime = (timeString) => {
     hours = parseInt(hours, 10);
     minutes = parseInt(minutes, 10);
 
-    // Convert to 24-hour format
     if (period.toUpperCase() === "PM" && hours !== 12) {
       hours += 12;
     } else if (period.toUpperCase() === "AM" && hours === 12) {
       hours = 0;
     }
 
-    // Format as "HH:mm"
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
   } catch (error) {
     console.error("Invalid time format:", timeString);
@@ -423,13 +421,11 @@ const formatTime = (timeString) => {
 const formatDate = (dateString) => {
   if (!dateString) return "";
 
-  // If already in YYYY-MM-DD format, return as is
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
 
   console.log("Converting date:", dateString);
 
   try {
-    // Use regex to capture date format (e.g., "12/31/2021")
     const match = dateString.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     if (!match) throw new Error("Invalid format");
 
@@ -437,7 +433,6 @@ const formatDate = (dateString) => {
     month = parseInt(month, 10);
     day = parseInt(day, 10);
 
-    // Format as "YYYY-MM-DD"
     return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   } catch (error) {
     console.error("Invalid date format:", dateString);
