@@ -177,17 +177,17 @@ const FullCalendarPage = () => {
     }
   };
   
-  const handleViewChange = (view) => {
-    if (view.type === "timeGridWeek" || view.type === "timeGridDay") {
-      setFilteredEvents([...events, ...timeOffEvents]); // Show time-off events in week/day view
-    } else {
-      setFilteredEvents([...events]); // Only show appointments in month view
-    }
-  };
+  // const handleViewChange = (view) => {
+  //   if (view.type === "timeGridWeek" || view.type === "timeGridDay") {
+  //     setFilteredEvents([...events, ...timeOffEvents]); // Show time-off events in week/day view
+  //   } else {
+  //     setFilteredEvents([...events]); // Only show appointments in month view
+  //   }
+  // };
 
-  useEffect(() => {
-    setFilteredEvents(events); // Ensure appointments load first
-  }, [events]);
+  // useEffect(() => {
+  //   setFilteredEvents(events); // Ensure appointments load first
+  // }, [events]);
   
   const handleCloseModal = () => {
     setShowModal(false);
@@ -296,6 +296,12 @@ const FullCalendarPage = () => {
         ...prevData,
         total: 30,
       }));
+    } if (formData.type === "Consult") {
+      setFormData((prevData) => ({
+        ...prevData,
+        location: "N/A",
+        total: 0,
+      }));
     } else if (formData.artistId) {
       // For other types (like Tattoo), calculate total based on artist's hourly rate and duration
       const artist = artists.find((artist) => artist._id === formData.artistId);
@@ -313,81 +319,134 @@ const FullCalendarPage = () => {
     setSelectedFiles(files);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-  
-    const [year, month, day] = formData.date.split('-');
-    const selectedDate = new Date(year, month - 1, day);
-    selectedDate.setHours(0, 0, 0, 0); 
-  
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); 
-  
-    const currentTime = new Date();
-  
-    const selectedStartTime = new Date(
-      year,
-      month - 1,
-      day,
-      ...formData.startTime.split(':')
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const [year, month, day] = formData.date.split('-');
+  const selectedDate = new Date(year, month - 1, day);
+  selectedDate.setHours(0, 0, 0, 0);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const currentTime = new Date();
+
+  const selectedStartTime = new Date(
+    year,
+    month - 1,
+    day,
+    ...formData.startTime.split(':')
+  );
+
+  const selectedEndTime = new Date(
+    year,
+    month - 1,
+    day,
+    ...formData.endTime.split(':')
+  );
+
+  // ✅ Prevent booking in the past
+  if (selectedDate < today) {
+    alert("❌ You cannot schedule an appointment in the past.");
+    return;
+  }
+
+  if (selectedDate.getTime() === today.getTime() && selectedStartTime < currentTime) {
+    alert("❌ You cannot schedule an appointment for an earlier time today.");
+    return;
+  }
+
+  try {
+    // ✅ Fetch existing appointments for the same artist
+    const { data: existingAppointments } = await axios.get(
+      `/api/appointments/${formData.artistId}/appointments`
     );
-  
-    if (selectedDate < today) {
-      alert("❌ You cannot schedule an appointment in the past.");
+
+    // ✅ Check for appointment overlap
+    const isOverlap = existingAppointments.some((appointment) => {
+      const existingStart = new Date(`${appointment.date}T${appointment.startTime}`);
+      const existingEnd = new Date(`${appointment.date}T${appointment.endTime}`);
+
+      return (
+        (selectedStartTime >= existingStart && selectedStartTime < existingEnd) || // Overlaps existing start
+        (selectedEndTime > existingStart && selectedEndTime <= existingEnd) || // Overlaps existing end
+        (selectedStartTime <= existingStart && selectedEndTime >= existingEnd) // Encloses existing appointment
+      );
+    });
+
+    if (isOverlap) {
+      alert("❌ This artist already has an appointment at the selected time.");
       return;
     }
 
-    if (selectedDate.getTime() === today.getTime() && selectedStartTime < currentTime) {
-      alert("❌ You cannot schedule an appointment for an earlier time today.");
+    // ✅ Fetch time-off requests for the same artist
+    const { data: timeOffRequests } = await axios.get(`/api/time-off/${formData.artistId}/time-off`);
+
+    // ✅ Check for time-off overlap
+    const isDuringTimeOff = timeOffRequests.some((timeOff) => {
+      const timeOffStart = new Date(`${timeOff.start.date}T${timeOff.start.startTime}`);
+      const timeOffEnd = new Date(`${timeOff.end.date}T${timeOff.end.endTime}`);
+
+      return (
+        (selectedStartTime >= timeOffStart && selectedStartTime < timeOffEnd) || // Starts during time off
+        (selectedEndTime > timeOffStart && selectedEndTime <= timeOffEnd) || // Ends during time off
+        (selectedStartTime <= timeOffStart && selectedEndTime >= timeOffEnd) // Encloses time off
+      );
+    });
+
+    if (isDuringTimeOff) {
+      alert("❌ This artist is not available during the selected time due to a time-off request.");
       return;
     }
-  
-    try {
-      let uploadedUrls = [];
-      const clientName = formData.name.trim(); 
-      const dateStr = formData.date.split("T")[0]; 
-  
-      if (selectedFiles.length > 0) {
-        uploadedUrls = await Promise.all(
-          selectedFiles.map(async (file) => {
-            const fileData = new FormData(); 
-            fileData.append("file", file);
-            fileData.append("upload_preset", "my_unsigned_preset");
-            fileData.append("folder", `InkIvory/${clientName}.${dateStr}`); 
-  
-            console.log("Uploading to folder:", `InkIvory/${clientName}.${dateStr}`);
-  
-            try {
-              const response = await axios.post(
-                `https://api.cloudinary.com/v1_1/dwp2h5cak/image/upload`,
-                fileData
-              );
-              return response.data.secure_url;
-            } catch (uploadError) {
-              console.error("🔥 Error uploading to Cloudinary:", uploadError);
-              return null;
-            }
-          })
-        );
-  
-        uploadedUrls = uploadedUrls.filter((url) => url !== null);
-      }
-  
-      const requestData = {
-        ...formData,
-        referencePhotos: uploadedUrls,
-      };
-  
-      const response = await axios.post(`/api/appointments/${formData.artistId}/appointments`, requestData);
-      console.log("✅ Appointment created:", response.data);
-  
-      setShowModal(false);
-      setFormData(initialFormState);
-      await fetchAppointments(setEvents, artists);
-    } catch (error) {
-      console.error("🔥 Error creating appointment:", error);
+
+    // ✅ Upload images if needed
+    let uploadedUrls = [];
+    const clientName = formData.name.trim();
+    const dateStr = formData.date.split("T")[0];
+
+    if (selectedFiles.length > 0) {
+      uploadedUrls = await Promise.all(
+        selectedFiles.map(async (file) => {
+          const fileData = new FormData();
+          fileData.append("file", file);
+          fileData.append("upload_preset", "my_unsigned_preset");
+          fileData.append("folder", `InkIvory/${clientName}.${dateStr}`);
+
+          try {
+            const response = await axios.post(
+              `https://api.cloudinary.com/v1_1/dwp2h5cak/image/upload`,
+              fileData
+            );
+            return response.data.secure_url;
+          } catch (uploadError) {
+            console.error("🔥 Error uploading to Cloudinary:", uploadError);
+            return null;
+          }
+        })
+      );
+
+      uploadedUrls = uploadedUrls.filter((url) => url !== null);
     }
-  };  
+
+    // ✅ Create new appointment request
+    const requestData = {
+      ...formData,
+      referencePhotos: uploadedUrls,
+    };
+
+    const response = await axios.post(
+      `/api/appointments/${formData.artistId}/appointments`,
+      requestData
+    );
+    console.log("✅ Appointment created:", response.data);
+
+    setShowModal(false);
+    setFormData(initialFormState);
+    await fetchAppointments(setEvents, artists);
+  } catch (error) {
+    console.error("🔥 Error creating appointment:", error);
+  }
+};  
 
 // Update appointment functions
 const formatTime = (timeString) => {
@@ -708,11 +767,12 @@ const formatDate = (dateString) => {
         
         const formattedEvents = response.data.map((request) => ({
           id: request._id,
-          title: `Time Off - ${request.artist.name}`, // Show artist name
+          title: `${request.reason} - ${request.artist.name}`, 
           start: new Date(request.start.date + "T" + request.start.startTime),
           end: new Date(request.end.date + "T" + request.end.endTime),
-          backgroundColor: "grey", // You can style this
+          classNames: ["time-off-event"], // ✅ Add custom class here
         }));
+  
         setTimeOffEvents(formattedEvents);
       } catch (error) {
         console.error("Error fetching time-off requests:", error);
@@ -721,6 +781,18 @@ const formatDate = (dateString) => {
   
     fetchTimeOffRequests();
   }, []);
+  
+
+  const startOfWeek = new Date();
+  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+
+  const endOfWeek = new Date();
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+  const currentWeekTimeOffEvents = timeOffEvents.filter((event) => {
+    const eventStart = new Date(event.start);
+    return eventStart >= startOfWeek && eventStart <= endOfWeek;
+  });
 
   // Gallery Upload
   const handleUploadComplete = (urls) => {
@@ -748,6 +820,47 @@ const formatDate = (dateString) => {
               </div>
             ))}
         </div>
+        <div className="todays-appointments">
+          <h2>Time Off Requests</h2>
+          {currentWeekTimeOffEvents.length > 0 ? (
+            currentWeekTimeOffEvents.map((event) => {
+              const start = new Date(event.start);
+              const end = new Date(event.end);
+
+              const sameDay =
+                start.toLocaleDateString() === end.toLocaleDateString();
+
+              return (
+                <div key={event.id} className="appointment-block">
+                  <strong>{event.title}</strong>
+                  <br />
+                  {sameDay ? (
+                    <>
+                      {start.toLocaleDateString()}{" "}
+                      {start.toLocaleTimeString([], {
+                        hour: "numeric",
+                        minute: "2-digit",
+                        hour12: true,
+                      })}{" "}
+                      -{" "}
+                      {end.toLocaleTimeString([], {
+                        hour: "numeric",
+                        minute: "2-digit",
+                        hour12: true,
+                      })}
+                    </>
+                  ) : (
+                    <>
+                      {start.toLocaleDateString()} - {end.toLocaleDateString()}
+                    </>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <p>No time off requests this week.</p>
+          )}
+        </div>
       </div>
 
       <div className="fullcalendar-container">
@@ -770,7 +883,10 @@ const formatDate = (dateString) => {
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
-          events={filteredEvents}
+          events={events}
+          eventOverlap={true} // ✅ Allow overlapping events
+          slotEventOverlap={true} // ✅ Allow slot-based overlap
+          eventOrder="-end" // ✅ Order events by start time
           eventColor="#3788d8"
           eventTextColor="#fff"
           dateClick={handleDateClick} // Handles clicking on an empty date
@@ -780,8 +896,8 @@ const formatDate = (dateString) => {
             center: "title",
             right: "dayGridMonth,timeGridWeek,timeGridDay",
           }}
-          viewDidMount={(arg) => handleViewChange(arg.view)} // Detect initial view on load
-          datesSet={(arg) => handleViewChange(arg.view)} // Detect when user changes view
+          // viewDidMount={(arg) => handleViewChange(arg.view)} // Detect initial view on load
+          // datesSet={(arg) => handleViewChange(arg.view)} // Detect when user changes view
           slotMinTime="08:00:00"
           slotMaxTime="21:00:00"
           allDaySlot={false}
@@ -791,8 +907,9 @@ const formatDate = (dateString) => {
           eventContent={(eventInfo) => {
             const { title, backgroundColor } = eventInfo.event;
             return (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: backgroundColor, width: "100%", height: "15px" }}>
-                {/* <span
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+                <span
+                  className= "event-bubble"
                   style={{
                     width: "10px",
                     height: "10px",
@@ -800,9 +917,9 @@ const formatDate = (dateString) => {
                     borderRadius: "50%",
                     marginRight: "5px",
                     marginLeft: "5px",
-                    border: ".5px solid #000",
+                    // border: ".5px solid #000",
                   }}
-                /> */}
+                />
                 <span>{title}</span>
               </div>
             );
@@ -845,6 +962,7 @@ const formatDate = (dateString) => {
                 <select className="full" name="type" value={formData.type} onChange={handleChange}>
                   <option value="Tattoo">Tattoo</option>
                   <option value="Piercing">Piercing</option>
+                  <option value="Consult">Consult</option>
                 </select>
               </div>
             </div>

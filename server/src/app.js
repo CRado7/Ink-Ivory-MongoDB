@@ -8,6 +8,8 @@ import inkIvoryAdminRoutes from "./routes/inkIvoryAdminRoutes.js";
 import artistRoutes from "./routes/artistRoutes.js";
 import appointmentRoutes from "./routes/appointmentRoutes.js";
 import timeOffRoutes from "./routes/timeOffRoutes.js";
+import contactRoutes from './routes/contact.js';
+import consultRoutes from './routes/consult.js';
 
 const app = express();
 
@@ -24,6 +26,8 @@ app.use("/api/admins", inkIvoryAdminRoutes);
 app.use("/api/artists", artistRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/time-off", timeOffRoutes);
+app.use("/api/contact", contactRoutes);
+app.use("/api/consult", consultRoutes);
 
 // Default routes
 app.get("/", (req, res) => {
