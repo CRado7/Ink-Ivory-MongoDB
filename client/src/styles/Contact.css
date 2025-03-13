@@ -95,6 +95,18 @@
   .social-links a:hover {
     color: #666;
   }
+
+  .success-message {
+    color: #4caf50;
+    font-size: 16px;
+    margin-top: 10px;
+  }
+  
+  .error-message {
+    color: #f44336;
+    font-size: 16px;
+    margin-top: 10px;
+  }  
   
   /* Responsive */
   @media (min-width: 768px) {

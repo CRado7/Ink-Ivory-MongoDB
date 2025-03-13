@@ -4,7 +4,7 @@ const appointmentSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, required: true },
-    type: { type: String, enum: ["Tattoo", "Piercing"], required: true },
+    type: { type: String, enum: ["Tattoo", "Piercing", "Consult"], required: true },
     location: { type: String, required: true },
     date: { type: Date, required: true, index: { expires: "180d" } },
     startTime: { type: String, required: true },

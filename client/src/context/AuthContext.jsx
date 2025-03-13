@@ -8,6 +8,8 @@ export const AuthProvider = ({ children }) => {
   const login = (newToken) => {
     setToken(newToken);
     localStorage.setItem("token", newToken);
+    console.log("🔑 Logged in!");
+    console.log("🔑 Token:", newToken);
   };
 
   const logout = () => {
