@@ -884,8 +884,8 @@ const formatDate = (dateString) => {
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
           events={events}
-          eventOverlap={true} // ✅ Allow overlapping events
-          slotEventOverlap={true} // ✅ Allow slot-based overlap
+          eventOverlap={false} // ✅ Allow overlapping events
+          slotEventOverlap={false} // ✅ Allow slot-based overlap
           eventOrder="-end" // ✅ Order events by start time
           eventColor="#3788d8"
           eventTextColor="#fff"
