@@ -89,7 +89,7 @@ const Gallery = () => {
             className="image-modal-content"
             onClick={(e) => e.stopPropagation()}
           >
-            <button className="image-close-button" onClick={closeModal}>
+            <button className="modal-close" onClick={closeModal}>
               &times;
             </button>
             <img
