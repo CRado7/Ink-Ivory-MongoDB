@@ -46,6 +46,11 @@
     font-size: 1.5rem;
   }
 
+  .todays-appointments p {
+    font-size: 1.2rem;
+    text-align: center;
+  }
+
   .fc-col-header-cell-cushion {
     color: #333;
   }

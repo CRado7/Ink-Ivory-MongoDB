@@ -803,22 +803,34 @@ const formatDate = (dateString) => {
     <div className="page-container">
       
       <div className="left-side">
-        <div className="todays-appointments">
-          <h2>Today's Appointments</h2>
-          {events
-            .filter((event) => {
-              const today = new Date();
-              const eventDate = new Date(event.start);
-              return eventDate.getDate() === today.getDate();
-            })
-            .map((event) => (
-              <div key={event.id} className="appointment-block">
-                <strong>{event.title}</strong> with {event.artist}
-                <br />
-                {new Date(event.start).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true })} -{" "}
-                {new Date(event.end).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true })}
-              </div>
-            ))}
+      <div className="todays-appointments">
+        <h2>Today's Appointments</h2>
+          {events.filter((event) => {
+            const today = new Date();
+            const eventDate = new Date(event.start);
+            return eventDate.getDate() === today.getDate() &&
+                  eventDate.getMonth() === today.getMonth() &&
+                  eventDate.getFullYear() === today.getFullYear();
+          }).length === 0 ? (
+            <p>No appointments today.</p>
+          ) : (
+            events
+              .filter((event) => {
+                const today = new Date();
+                const eventDate = new Date(event.start);
+                return eventDate.getDate() === today.getDate() &&
+                      eventDate.getMonth() === today.getMonth() &&
+                      eventDate.getFullYear() === today.getFullYear();
+              })
+              .map((event) => (
+                <div key={event.id} className="appointment-block">
+                  <strong>{event.title}</strong> with {event.artist}
+                  <br />
+                  {new Date(event.start).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true })} -{" "}
+                  {new Date(event.end).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true })}
+                </div>
+              ))
+          )}
         </div>
         <div className="todays-appointments">
           <h2>Time Off Requests</h2>
@@ -887,6 +899,7 @@ const formatDate = (dateString) => {
           eventOverlap={false} // ✅ Allow overlapping events
           slotEventOverlap={false} // ✅ Allow slot-based overlap
           eventOrder="-end" // ✅ Order events by start time
+          dayMaxEventRows={3} // ✅ Limit number of events per day
           eventColor="#3788d8"
           eventTextColor="#fff"
           dateClick={handleDateClick} // Handles clicking on an empty date
